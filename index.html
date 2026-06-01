@@ -1,13 +1,210 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>propert-id</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROPERT.ID — Premium Venue Platform</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+:root{
+  --gold:#C9A96E;
+  --navy:#0D1B2E;
+  --white:#fff;
+}
+
+body{
+  font-family:'DM Sans',sans-serif;
+  background:#FAF7F2;
+}
+
+/* NAVBAR */
+nav{
+  position:fixed;
+  width:100%;
+  padding:1rem 5%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:rgba(13,27,46,0.85);
+  backdrop-filter:blur(12px);
+  z-index:100;
+}
+
+.logo{
+  color:white;
+  font-family:'Playfair Display';
+  font-size:1.3rem;
+}
+.logo span{color:var(--gold);}
+
+.nav-cta{
+  background:var(--gold);
+  padding:8px 20px;
+  color:#000;
+  text-decoration:none;
+  font-size:0.85rem;
+}
+
+/* HERO */
+.hero{
+  height:100vh;
+  display:flex;
+  align-items:center;
+  background:
+    linear-gradient(rgba(13,27,46,0.75),rgba(13,27,46,0.85)),
+    url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070');
+  background-size:cover;
+  background-position:center;
+  animation:zoomBg 20s ease-in-out infinite alternate;
+}
+
+@keyframes zoomBg{
+  from{background-size:100%;}
+  to{background-size:110%;}
+}
+
+.hero-content{
+  padding:0 5%;
+  color:white;
+  max-width:600px;
+}
+
+.hero-title{
+  font-family:'Playfair Display';
+  font-size:3rem;
+  margin-bottom:1rem;
+  letter-spacing:-0.5px;
+  line-height:1.2;
+}
+
+.hero-title span{color:var(--gold);}
+
+.hero-desc{
+  opacity:0.85;
+  margin-bottom:2rem;
+  line-height:1.6;
+}
+
+.btn{
+  background:var(--gold);
+  padding:12px 30px;
+  text-decoration:none;
+  color:black;
+  font-size:0.9rem;
+  transition:0.3s;
+}
+
+.btn:hover{
+  opacity:0.85;
+}
+
+/* PROPERTIES */
+.section{
+  padding:5rem 5%;
+}
+
+.section h2{
+  font-family:'Playfair Display';
+  margin-bottom:2rem;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+}
+
+.card{
+  background:white;
+  overflow:hidden;
+  transition:0.3s;
+  box-shadow:0 10px 30px rgba(0,0,0,0.05);
+}
+
+.card:hover{
+  transform:translateY(-8px) scale(1.01);
+}
+
+.card img{
+  width:100%;
+  height:200px;
+  object-fit:cover;
+}
+
+.card-body{
+  padding:15px;
+}
+
+.title{
+  font-family:'Playfair Display';
+  margin-bottom:5px;
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .grid{grid-template-columns:1fr;}
+  .hero-title{font-size:2rem;}
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">PROPERT<span>.ID</span></div>
+  <a href="#" class="nav-cta">Login</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <h1 class="hero-title">
+      Temukan Gedung <span>Premium</span> untuk Event Anda
+    </h1>
+    <p class="hero-desc">
+      Platform terbaik untuk mencari dan menyewa gedung mewah, modern, dan eksklusif dengan proses cepat dan terpercaya.
+    </p>
+    <a href="#" class="btn">Cari Sekarang</a>
+  </div>
+</section>
+
+<!-- PROPERTIES -->
+<section class="section">
+  <h2>Gedung Pilihan</h2>
+
+  <div class="grid">
+
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1494526585095-c41746248156?q=80&w=2070">
+      <div class="card-body">
+        <h3 class="title">Ballroom Jakarta</h3>
+        <p>📍 Jakarta Selatan</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2070">
+      <div class="card-body">
+        <h3 class="title">Convention Hall Bandung</h3>
+        <p>📍 Bandung</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070">
+      <div class="card-body">
+        <h3 class="title">Gedung Surabaya</h3>
+        <p>📍 Surabaya</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</body>
 </html>
