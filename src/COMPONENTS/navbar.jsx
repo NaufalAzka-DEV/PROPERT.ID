@@ -1,38 +1,21 @@
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React from 'react';
+import { NavLink } from 'react-router-dom';
 
 export default function Navbar() {
-  const navigate = useNavigate();
+  const linkBase = ({ isActive }) => isActive ? "text-[#c5a880] font-semibold" : "text-gray-300 hover:text-white transition";
 
   return (
-    <nav className="fixed top-0 w-full z-50 flex items-center justify-between px-[5%] h-16 bg-navy/95 backdrop-blur-md border-b border-gold/20 text-white">
-      {/* LOGO */}
-      <Link to="/" className="font-playfair text-white text-xl">
-        PROPERT<span className="text-gold">.ID</span>
-      </Link>
-
-      {/* MENU NAVIGASI (Disesuaikan dengan Route App.jsx) */}
-      <div className="hidden md:flex items-center gap-6">
-        <Link to="/" className="text-white/70 hover:text-gold text-sm transition-colors">Beranda</Link>
-        <Link to="/gedung" className="text-white/70 hover:text-gold text-sm transition-colors">Gedung</Link>
-        <Link to="/dashboard" className="text-white/70 hover:text-gold text-sm transition-colors">Dashboard</Link>
-        <Link to="/riwayat" className="text-white/70 hover:text-gold text-sm transition-colors">Riwayat</Link>
+    <nav className="bg-[#0b132b] border-b border-gray-800 px-6 py-4 flex justify-between items-center">
+      <NavLink to="/" className="text-lg font-serif tracking-widest font-bold text-[#c5a880]">PROPERT.ID</NavLink>
+      <div className="flex space-x-6 text-xs uppercase tracking-wider font-medium">
+        <NavLink to="/" className={linkBase}>Beranda</NavLink>
+        <NavLink to="/gedung" className={linkBase}>Gedung</NavLink>
+        <NavLink to="/dashboard" className={linkBase}>Dashboard</NavLink>
+        <NavLink to="/riwayat" className={linkBase}>Riwayat</NavLink>
       </div>
-
-      {/* TOMBOL AUTENTIKASI (Disesuaikan dengan Route App.jsx) */}
-      <div className="flex items-center gap-3">
-        <button 
-          onClick={() => navigate("/masuk")}
-          className="text-white/70 hover:text-white px-4 py-1.5 text-sm rounded-sm transition-colors"
-        >
-          Masuk
-        </button>
-        <button 
-          onClick={() => navigate("/daftar")}
-          className="border border-white/30 hover:border-gold hover:text-gold px-4 py-1.5 text-sm rounded-sm transition-colors"
-        >
-          Daftar
-        </button>
+      <div className="flex space-x-3 items-center">
+        <NavLink to="/masuk" className="text-xs text-gray-300 hover:text-white font-medium">Masuk</NavLink>
+        <NavLink to="/daftar" className="bg-[#c5a880] text-[#0b132b] text-[11px] font-bold px-3 py-1.5 rounded transition hover:bg-[#b3956d]">Daftar</NavLink>
       </div>
     </nav>
   );
