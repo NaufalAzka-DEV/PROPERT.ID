@@ -1,68 +1,136 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { gedungList } from '../data/gedungData';
+import { useState } from 'react';
+import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import EmptyState from '../components/EmptyState';
+import PremiumImage from '../components/PremiumImage';
+import ScrollReveal from '../components/ScrollReveal';
+import { useBuilding } from '../hooks/useBuildings';
+import { createBooking } from '../services/api';
+
+const packageOptions = ['Essential', 'Royal', 'Signature'];
 
 export default function Booking() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const gedung = gedungList.find(g => g.id === parseInt(id));
+  const { building, loading, error } = useBuilding(id);
+  const [date, setDate] = useState('');
+  const [note, setNote] = useState('');
+  const [packageName, setPackageName] = useState('Royal');
+  const [submitting, setSubmitting] = useState(false);
 
-  const [tanggal, setTanggal] = useState('');
-  const [catatan, setCatatan] = useState('');
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!building) return;
 
-  const handleConfirmBooking = (e) => {
-    e.preventDefault();
-    
-    const currentUser = localStorage.getItem('userName') || "Client Umum";
-
-    // Format objek transaksi baru
-    const newOrder = {
-      id: `TRX-${Math.floor(1000 + Math.random() * 9000)}`,
-      client: currentUser,
-      gedung: gedung.nama,
-      tanggal: tanggal,
-      status: "Diproses",
-      total: gedung.harga
-    };
-
-    // Tarik riwayat lama dari localStorage jika ada, lalu gabungkan
-    const currentLogs = JSON.parse(localStorage.getItem('localRiwayat')) || [];
-    currentLogs.unshift(newOrder); // taruh di baris paling atas
-    localStorage.setItem('localRiwayat', JSON.stringify(currentLogs));
-
-    alert(`Booking Sukses untuk ${gedung.nama}! Pesanan Anda sedang diproses.`);
+    setSubmitting(true);
+    await createBooking({ building, date, note, packageName });
+    setSubmitting(false);
+    alert(`Booking ${building.nama} berhasil disimpan ke riwayat.`);
     navigate('/riwayat');
   };
 
-  if (!gedung) return <div className="text-white text-center py-20">Data Properti Kosong.</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#07111f] px-5 py-16 text-white lg:px-8">
+        <div className="mx-auto h-[520px] max-w-5xl animate-pulse rounded-lg bg-white/[0.05]" />
+      </div>
+    );
+  }
+
+  if (error || !building) {
+    return (
+      <div className="min-h-screen bg-[#07111f] px-5 py-16 text-white lg:px-8">
+        <EmptyState
+          title="Data booking tidak ditemukan"
+          description="Silakan pilih gedung dari katalog sebelum membuat reservasi."
+          action={
+            <NavLink to="/gedung" className="rounded-md bg-gold px-5 py-3 text-sm font-bold text-[#07111f]">
+              Pilih gedung
+            </NavLink>
+          }
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-[#0b132b] text-white min-h-screen py-12 px-6 flex items-center justify-center">
-      <div className="bg-[#1c2541] p-6 rounded border border-gray-800 w-full max-w-md shadow-xl">
-        <h2 className="text-xl font-serif text-[#c5a880] mb-1">Formulir Reservasi</h2>
-        <p className="text-[11px] text-gray-400 mb-5">Lengkapi jadwal sewa unit properti premium Anda.</p>
-        
-        <div className="bg-[#0b132b] p-3 rounded mb-4 border border-gray-800 text-xs">
-          <p className="text-gray-400">Unit Terpilih:</p>
-          <p className="font-semibold text-[#c5a880] text-sm mt-0.5">{gedung.nama}</p>
-          <p className="text-gray-300 mt-1">{gedung.harga}</p>
-        </div>
+    <div className="min-h-screen bg-[#07111f] px-5 py-16 text-white lg:px-8">
+      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+        <ScrollReveal className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.04]">
+          <PremiumImage src={building.image} alt={building.nama} wrapperClassName="h-72 w-full" className="h-full w-full object-cover" />
+          <div className="p-6">
+            <p className="text-xs font-semibold uppercase text-gold">{building.lokasi}</p>
+            <h1 className="mt-2 font-playfair text-3xl font-semibold">{building.nama}</h1>
+            <p className="mt-4 text-sm leading-7 text-slate-300">{building.deskripsi}</p>
+            <div className="mt-6 border-t border-white/10 pt-5">
+              <p className="text-xs text-slate-400">Harga</p>
+              <p className="mt-1 text-xl font-bold text-gold">{building.harga}</p>
+            </div>
+          </div>
+        </ScrollReveal>
 
-        <form onSubmit={handleConfirmBooking} className="space-y-4">
-          <div>
-            <label className="text-[10px] font-bold text-gray-300 block mb-1">PILIH TANGGAL EVENT</label>
-            <input type="date" required value={tanggal} onChange={e => setTanggal(e.target.value)}
-              className="w-full bg-[#0b132b] border border-gray-700 rounded p-2 text-xs focus:outline-none focus:border-[#c5a880]" />
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-gray-300 block mb-1">CATATAN KHUSUS (OPSIONAL)</label>
-            <textarea rows="3" placeholder="Contoh: Tambahan tata panggung luar ruangan..." value={catatan} onChange={e => setCatatan(e.target.value)}
-              className="w-full bg-[#0b132b] border border-gray-700 rounded p-2 text-xs focus:outline-none focus:border-[#c5a880] resize-none" />
-          </div>
-          <button type="submit" className="w-full bg-[#c5a880] hover:bg-[#b3956d] text-[#0b132b] font-bold py-2.5 rounded text-xs transition uppercase">
-            Konfirmasi & Amankan Jadwal
-          </button>
-        </form>
+        <ScrollReveal delay={120} className="rounded-lg border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/20 md:p-8">
+          <p className="text-sm font-semibold uppercase text-gold">Simulasi Booking</p>
+          <h2 className="mt-2 font-playfair text-3xl font-semibold">Amankan jadwal event</h2>
+          <p className="mt-3 text-sm leading-7 text-slate-300">
+            Form ini menyimpan data ke localStorage sebagai dummy action, sehingga alurnya tetap bisa didemokan tanpa backend.
+          </p>
+
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            <div>
+              <label htmlFor="tanggal" className="mb-2 block text-xs font-bold uppercase text-slate-300">
+                Tanggal event
+              </label>
+              <input
+                id="tanggal"
+                type="date"
+                required
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
+                className="min-h-12 w-full rounded-md border border-white/10 bg-[#050b14] px-4 text-sm text-white outline-none transition focus:border-gold"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="paket" className="mb-2 block text-xs font-bold uppercase text-slate-300">
+                Paket layanan
+              </label>
+              <select
+                id="paket"
+                value={packageName}
+                onChange={(event) => setPackageName(event.target.value)}
+                className="min-h-12 w-full rounded-md border border-white/10 bg-[#050b14] px-4 text-sm text-white outline-none transition focus:border-gold"
+              >
+                {packageOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="catatan" className="mb-2 block text-xs font-bold uppercase text-slate-300">
+                Catatan khusus
+              </label>
+              <textarea
+                id="catatan"
+                rows="4"
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                placeholder="Contoh: butuh panggung tambahan dan meja registrasi."
+                className="w-full resize-none rounded-md border border-white/10 bg-[#050b14] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-gold"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="min-h-12 w-full rounded-md bg-gold px-5 text-sm font-bold text-[#07111f] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 active:scale-[1.02]"
+            >
+              {submitting ? 'Menyimpan booking...' : 'Konfirmasi Booking'}
+            </button>
+          </form>
+        </ScrollReveal>
       </div>
     </div>
   );

@@ -1,98 +1,207 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { initialAdminDatabase } from '../data/userDatabase';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import ScrollReveal from '../components/ScrollReveal';
+import { loginUser, registerUser } from '../services/api';
+import { readJSON, storageKeys } from '../utils/storage';
 
 export default function Login() {
+  const location = useLocation();
   const navigate = useNavigate();
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
-
-  // Form States
+  const [isRegisterMode, setIsRegisterMode] = useState(location.pathname === '/daftar');
+  const [historyAccounts, setHistoryAccounts] = useState([]);
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    setIsRegisterMode(location.pathname === '/daftar');
+  }, [location.pathname]);
 
-    // Ambil array registrasi client dari localStorage (atau array kosong jika belum ada)
-    const localClients = JSON.parse(localStorage.getItem('registeredClients')) || [];
+  useEffect(() => {
+    setHistoryAccounts(readJSON(storageKeys.accountHistory, []));
+  }, []);
 
-    if (isRegisterMode) {
-      // PROSES PENDAFTARAN AKUN BARU
-      const isExist = localClients.some(c => c.email === email) || initialAdminDatabase.some(a => a.email === email);
-      if (isExist) {
-        alert("Pendaftaran Gagal: Email ini sudah terdaftar!");
-        return;
-      }
+  const switchMode = () => {
+    const nextPath = isRegisterMode ? '/masuk' : '/daftar';
+    navigate(nextPath);
+  };
 
-      const newClient = { email, password, name: fullName, role: 'client' };
-      localClients.push(newClient);
-      localStorage.setItem('registeredClients', JSON.stringify(localClients));
+  const selectAccount = (account) => {
+    setEmail(account.email);
+    setPassword(account.password);
+    setErrorMessage('');
+  };
 
-      alert("Registrasi Berhasil! Silakan masuk menggunakan akun baru Anda.");
-      setIsRegisterMode(false); // Kembalikan ke form login biasa
-    } else {
-      // PROSES LOGIN REAL-TIME
-      // 1. Cek dari database Admin Utama
-      const adminUser = initialAdminDatabase.find(a => a.email === email && a.password === password);
-      // 2. Cek dari database Client hasil registrasi mandiri
-      const clientUser = localClients.find(c => c.email === email && c.password === password);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setErrorMessage('');
 
-      const foundUser = adminUser || clientUser;
+    if (isRegisterMode && fullName.trim().length < 3) {
+      setErrorMessage('Nama lengkap minimal 3 karakter.');
+      return;
+    }
 
-      if (foundUser) {
-        localStorage.setItem('userRole', foundUser.role);
-        localStorage.setItem('userName', foundUser.name);
-        alert(`Selamat Datang, ${foundUser.name}!`);
-        navigate('/dashboard');
+    if (!email.includes('@')) {
+      setErrorMessage('Format email belum valid.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage('Password minimal 6 karakter.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      if (isRegisterMode) {
+        await registerUser({ name: fullName.trim(), email: email.trim(), password });
+        alert('Registrasi berhasil. Silakan masuk dengan akun baru Anda.');
+        setIsRegisterMode(false);
+        navigate('/masuk');
       } else {
-        alert("Akses Ditolak: Kredensial tidak cocok dengan record data manapun.");
+        const user = await loginUser({ email: email.trim(), password });
+        alert(`Login sukses. Selamat datang ${user.name}.`);
+        navigate('/dashboard');
       }
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="bg-[#0b132b] text-white min-h-screen flex items-center justify-center px-4">
-      <div className="bg-[#1c2541] p-8 rounded border border-gray-800 shadow-xl w-full max-w-md">
-        <h2 className="text-2xl font-serif text-center text-[#c5a880] mb-1">
-          {isRegisterMode ? "Pendaftaran Akun" : "Masuk Akun"}
-        </h2>
-        <p className="text-[11px] text-center text-gray-400 mb-6">
-          {isRegisterMode ? "Buat kredensial client baru secara real-time" : "Masukkan email terdaftar Anda"}
-        </p>
+    <div className="min-h-screen bg-[#07111f] px-5 py-16 text-white lg:px-8">
+      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+        <ScrollReveal>
+          <p className="text-sm font-semibold uppercase text-gold">Akses Login</p>
+          <h1 className="mt-3 font-playfair text-5xl font-semibold leading-tight">Masuk untuk mengelola booking premium</h1>
+          <p className="mt-5 text-sm leading-7 text-slate-300">
+            Gunakan akun anda untuk masuk  sebagai admin atau user.
+          </p>
+        </ScrollReveal>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {isRegisterMode && (
-            <div>
-              <label className="text-[10px] font-bold tracking-wider text-gray-300 block mb-1">NAMA LENGKAP</label>
-              <input type="text" required value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Masukkan nama Anda"
-                className="w-full bg-[#0b132b] border border-gray-700 rounded p-2 text-xs focus:outline-none focus:border-[#c5a880]" />
+        <ScrollReveal delay={120} className="rounded-lg border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/20 md:p-8">
+          <p className="text-center text-sm font-semibold uppercase text-gold">
+            {isRegisterMode ? 'Daftar Akun' : 'Masuk Akun'}
+          </p>
+          <h2 className="mt-2 text-center font-playfair text-3xl font-semibold">
+            {isRegisterMode ? 'Buat akun baru' : 'Selamat datang kembali'}
+          </h2>
+
+          {errorMessage && (
+            <div className="mt-6 rounded-md border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+              {errorMessage}
             </div>
           )}
-          <div>
-            <label className="text-[10px] font-bold tracking-wider text-gray-300 block mb-1">ALAMAT EMAIL</label>
-            <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="nama@email.com"
-              className="w-full bg-[#0b132b] border border-gray-700 rounded p-2 text-xs focus:outline-none focus:border-[#c5a880]" />
-          </div>
-          <div>
-            <label className="text-[10px] font-bold tracking-wider text-gray-300 block mb-1">PASSWORD</label>
-            <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
-              className="w-full bg-[#0b132b] border border-gray-700 rounded p-2 text-xs focus:outline-none focus:border-[#c5a880]" />
-          </div>
-          
-          <button type="submit" className="w-full bg-[#c5a880] hover:bg-[#b3956d] text-[#0b132b] font-bold py-2.5 rounded text-xs transition uppercase mt-2">
-            {isRegisterMode ? "Buat Akun Baru" : "Masuk"}
-          </button>
-        </form>
 
-        <div className="text-center mt-5 pt-4 border-t border-gray-800 text-xs">
-          <p className="text-gray-400">
-            {isRegisterMode ? "Sudah punya akun?" : "Belum terdaftar di platform kami?"}{" "}
-            <button type="button" onClick={() => setIsRegisterMode(!isRegisterMode)} className="text-[#c5a880] font-bold hover:underline">
-              {isRegisterMode ? "Login di sini" : "Daftar Sekarang"}
+          {!isRegisterMode && historyAccounts.length > 0 && (
+            <div className="mt-6 border-b border-white/10 pb-5">
+              <p className="mb-3 text-xs font-bold uppercase text-slate-400">Rekomendasi akun</p>
+              <div className="grid gap-2">
+                {historyAccounts.map((account) => (
+                  <button
+                    key={account.email}
+                    type="button"
+                    onClick={() => selectAccount(account)}
+                    className="rounded-md border border-white/10 px-4 py-3 text-left text-sm text-slate-300 transition hover:border-gold/50 hover:text-white"
+                  >
+                    {account.email} - {account.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+            {isRegisterMode && (
+              <div>
+                <label htmlFor="fullName" className="mb-2 block text-xs font-bold uppercase text-slate-300">
+                  Nama lengkap
+                </label>
+                <input
+                  id="fullName"
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(event) => {
+                    setFullName(event.target.value);
+                    setErrorMessage('');
+                  }}
+                  disabled={loading}
+                  className="min-h-12 w-full rounded-md border border-white/10 bg-[#050b14] px-4 text-sm text-white outline-none transition disabled:opacity-60 focus:border-gold focus:ring-2 focus:ring-gold/20"
+                  placeholder="Masukkan nama lengkap"
+                />
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="email" className="mb-2 block text-xs font-bold uppercase text-slate-300">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  setErrorMessage('');
+                }}
+                disabled={loading}
+                className="min-h-12 w-full rounded-md border border-white/10 bg-[#050b14] px-4 text-sm text-white outline-none transition disabled:opacity-60 focus:border-gold focus:ring-2 focus:ring-gold/20"
+                placeholder="contoh: user123@gmail.com"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="mb-2 block text-xs font-bold uppercase text-slate-300">
+                Password
+              </label>
+              <div className="flex min-h-12 overflow-hidden rounded-md border border-white/10 bg-[#050b14] transition focus-within:border-gold focus-within:ring-2 focus-within:ring-gold/20">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(event) => {
+                    setPassword(event.target.value);
+                    setErrorMessage('');
+                  }}
+                  disabled={loading}
+                  className="min-w-0 flex-1 bg-transparent px-4 text-sm text-white outline-none disabled:opacity-60"
+                  placeholder="Masukkan password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((value) => !value)}
+                  disabled={loading}
+                  className="border-l border-white/10 px-4 text-xs font-bold text-gold transition hover:bg-white/5 disabled:opacity-60"
+                >
+                  {showPassword ? 'Sembunyikan' : 'Lihat'}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="min-h-12 w-full rounded-md bg-gold px-5 text-sm font-bold text-[#07111f] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 active:scale-[1.02]"
+            >
+              {loading ? 'Memproses...' : isRegisterMode ? 'Buat Akun' : 'Masuk Aplikasi'}
             </button>
-          </p>
-        </div>
+          </form>
+
+          <div className="mt-6 border-t border-white/10 pt-5 text-center">
+            <button type="button" onClick={switchMode} className="text-sm font-bold text-gold transition hover:text-white">
+              {isRegisterMode ? 'Sudah punya akun? Masuk' : 'Belum punya akun? Daftar'}
+            </button>
+          </div>
+        </ScrollReveal>
       </div>
     </div>
   );

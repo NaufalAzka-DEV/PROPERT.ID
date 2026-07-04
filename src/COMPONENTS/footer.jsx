@@ -1,35 +1,62 @@
-import { Link } from "react-router-dom";
+import { NavLink } from 'react-router-dom';
+
+const platformLinks = [
+  { label: 'Cari Gedung', to: '/gedung' },
+  { label: 'Riwayat Booking', to: '/riwayat' },
+  { label: 'Dashboard', to: '/dashboard' },
+  { label: 'Profile', to: '/profile' },
+];
+
+const demoLinks = ['Cara Booking', 'Harga & Paket', 'FAQ', 'Kebijakan Privasi'];
 
 export default function Footer() {
+  const handleDemoClick = (label) => {
+    alert(`${label} tersedia sebagai simulasi pada mode presentasi.`);
+  };
+
   return (
-    <footer className="bg-navy pt-12 pb-6 px-[5%] text-white/60">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-8">
+    <footer className="border-t border-white/10 bg-[#050b14] px-5 py-12 text-slate-300 lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
-          <div className="font-playfair text-white text-xl mb-2">
+          <p className="font-playfair text-2xl font-semibold text-white">
             PROPERT<span className="text-gold">.ID</span>
-          </div>
-          <p className="text-sm leading-relaxed">
-            Platform premium untuk pencarian dan pemesanan gedung event terbaik di Indonesia.
+          </p>
+          <p className="mt-4 max-w-md text-sm leading-7 text-slate-400">
+            Platform pencarian dan pemesanan gedung premium untuk event, wedding, seminar, dan kebutuhan korporasi.
           </p>
         </div>
-        {[
-          { title: "Platform", links: ["Cari Gedung", "Cara Booking", "Harga & Paket", "FAQ"] },
-          { title: "Perusahaan", links: ["Tentang Kami", "Karir", "Blog", "Press"] },
-          { title: "Hukum", links: ["Privasi", "Ketentuan", "Cookie", "Keamanan"] },
-        ].map((col) => (
-          <div key={col.title}>
-            <h4 className="text-white text-[0.7rem] uppercase tracking-widest mb-3">{col.title}</h4>
-            {col.links.map((l) => (
-              <a key={l} href="#" className="block text-[0.82rem] mb-1.5 hover:text-gold transition-colors">
-                {l}
-              </a>
+
+        <div>
+          <h4 className="text-sm font-bold uppercase text-gold">Navigasi</h4>
+          <div className="mt-4 grid gap-3">
+            {platformLinks.map((link) => (
+              <NavLink key={link.to} to={link.to} className="text-sm text-slate-400 transition hover:text-white">
+                {link.label}
+              </NavLink>
             ))}
           </div>
-        ))}
+        </div>
+
+        <div>
+          <h4 className="text-sm font-bold uppercase text-gold">Bantuan</h4>
+          <div className="mt-4 grid gap-3">
+            {demoLinks.map((label) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => handleDemoClick(label)}
+                className="text-left text-sm text-slate-400 transition hover:text-white"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
-      <div className="border-t border-white/10 pt-4 flex justify-between text-xs text-white/30">
-        <span>©2026 PROPERT.ID</span>
-        <span>Made with ❤ for Indonesia</span>
+
+      <div className="mx-auto mt-10 flex max-w-7xl flex-col gap-3 border-t border-white/10 pt-6 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
+        <span>Copyright 2026 PROPERT.ID</span>
+        <span>Made with ❤️</span>
       </div>
     </footer>
   );
